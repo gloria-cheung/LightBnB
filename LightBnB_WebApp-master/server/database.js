@@ -34,8 +34,8 @@ const getUserWithEmail = function(email) {
     })
     .catch((error) => {
       console.log(error.message);
-    })
-}
+    });
+};
 exports.getUserWithEmail = getUserWithEmail;
 
 /**
@@ -61,8 +61,8 @@ const getUserWithId = function(id) {
     })
     .catch((error) => {
       console.log(error.message);
-    })
-}
+    });
+};
 exports.getUserWithId = getUserWithId;
 
 
@@ -89,8 +89,8 @@ const addUser =  function(user) {
     })
     .catch((error) => {
       console.log(error.message);
-    })
-}
+    });
+};
 exports.addUser = addUser;
 
 /// Reservations
@@ -101,8 +101,26 @@ exports.addUser = addUser;
  * @return {Promise<[{}]>} A promise to the reservations.
  */
 const getAllReservations = function(guest_id, limit = 10) {
-  return getAllProperties(null, 2);
-}
+  const queryString = `
+    SELECT reservations.id, properties.*, reservations.start_date, avg(property_reviews.rating)
+    FROM reservations
+    JOIN properties ON reservations.property_id = properties.id
+    JOIN property_reviews ON properties.id = property_reviews.property_id
+    WHERE reservations.guest_id = $1
+    GROUP BY reservations.id, properties.id
+    ORDER BY reservations.start_date
+    LIMIT $2;
+  `;
+  const values = [guest_id, limit];
+  return pool.query(queryString, values)
+    .then((result) => {
+      console.log(result.rows);
+      return result.rows;
+    })
+    .catch((error) => {
+      console.log(error.message);
+    });
+};
 exports.getAllReservations = getAllReservations;
 
 /// Properties
@@ -126,8 +144,8 @@ const getAllProperties = function(options, limit = 10) {
     })
     .catch((error) => {
       console.log(error.message);
-    })
-}
+    });
+};
 exports.getAllProperties = getAllProperties;
 
 
@@ -141,5 +159,5 @@ const addProperty = function(property) {
   property.id = propertyId;
   properties[propertyId] = property;
   return Promise.resolve(property);
-}
+};
 exports.addProperty = addProperty;
